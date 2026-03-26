@@ -105,7 +105,7 @@ async function initMediaPipe() {
     baseOptions: {
       // The "full" model — most accurate, best for PT angle work
       modelAssetPath:
-        "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+        "https://storage.googleapis.c+++++++om/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
       delegate: "GPU" // use GPU acceleration; auto-falls back to CPU if unavailable
     },
     runningMode:                "VIDEO", // VIDEO mode = optimized for frame-by-frame streams
