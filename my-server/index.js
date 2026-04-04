@@ -5,11 +5,15 @@ const { Activity } = require('react');
 const app = express();
 const morgan = require('morgan');
 const cors = require('cors');3
+const OpenAI = require('openai');
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
+
+const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY,
+});
 
 app.get('/', (req, res, next) => {
     res.json('hi guys, server is running! welcome to the main page');
@@ -24,6 +28,25 @@ app.get('/user/:id', (req,res,next) => {
     next();
 }, (req, res, next) => {
     res.send(`Name: ${req.params.id}`);
+});
+
+app.post("/api/chat", async (req, res) =>{
+   try{
+    const { message } = req.body;
+
+    const response = await client.responses.create({
+        model : "gpt-5-mini",
+        input: message,
+    });
+
+    const reply = response.output_text;
+
+    res.json({ reply });
+   }
+   catch(error){
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong"});
+   }
 });
 
 app.post('/', (req,res, next) =>{
