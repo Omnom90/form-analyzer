@@ -149,27 +149,106 @@ export default function App() {
     }
   };
 
+  const exerciseConfig = {
+  squat: {
+    angles: ['rightKnee', 'leftKnee', 'rightHip', 'leftHip'],
+    repDetection: {
+      kneeBottomAngle: 100,      // knees bent at bottom
+      kneeTopAngle: 140,        // knees extended at top
+      hipBottomAngle: 100,       // hips bent at bottom
+      hipTopAngle: 50         // hips extended at top
+    }
+  },
+  
+  benchPress: {
+    angles: ['rightElbow', 'leftElbow', 'rightShoulder', 'leftShoulder'],
+    repDetection: {
+      elbowBottomAngle: 90,     // elbows bent at bottom of press
+      elbowTopAngle: 170,       // elbows extended at top
+      shoulderBottomAngle: 80,  // shoulders at bottom
+      shoulderTopAngle: 160     // shoulders at top
+    }
+  },
+  
+  deadlift: {
+    angles: ['rightKnee', 'leftKnee', 'rightHip', 'leftHip', 'rightAnkle', 'leftAnkle'],
+    repDetection: {
+      kneeBottomAngle: 130,      // knees bent at start (deep bend)
+      kneeTopAngle: 170,        // knees extended at lockout
+      hipBottomAngle: 70,       // hips low at start
+      hipTopAngle: 170          // hips extended at lockout
+    }
+  },
+  
+ 
+};
+
+  const calculateAverage = (numbers: (number | null)[]) : number => {
+    const nums = numbers.filter(n => n !== null) as number[];
+    if (nums.length === 0) return 0;
+    const avg = nums.reduce((acc, val) => acc + val, 0) / nums.length;
+    return avg;
+  };
+
+  const exercise: 'squat' | 'benchPress' | 'deadlift' = 'squat';
+  const neededAngles = exerciseConfig[exercise].angles;
+
+
+
+ 
+
+  const [repsThisSet, setRepsThisSet] = useState(0);
+  const [setData, setSetData] = useState<any[]>([]);
+  const [previousKneeAngle, setPreviousKneeAngle] = useState(null);
+  const [inBottomPosition, setInBottomPosition] = useState(false);
+  
   const sendPoseDataToBackend = async (poseData: PoseResult) => {
-    try {
-      const payload = {
-        landmarks: poseData.landmarks,
-        angles: poseData.angles,
-        timestamp: poseData.timestamp,
-        sessionTime,
-        metrics
-      };
-
-      const response = await fetch('http://localhost:3000/api/pose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        console.error('Backend response error:', response.statusText);
+    
+    const config = exerciseConfig[exercise];
+    const benchmarks = config.repDetection;
+    const angles = config.angles;
+    
+    angles.forEach(angle => {
+      const angleValue = poseData.angles[angle as keyof typeof poseData.angles];
+      if(angleValue != null && angleValue < benchmarks[`${angle}BottomAngle` as keyof typeof benchmarks] && !inBottomPosition){
+        setInBottomPosition(true);
       }
-    } catch (error) {
-      console.error('Failed to send pose data:', error);
+      if(angleValue != null && angleValue > benchmarks[`${angle}TopAngle` as keyof typeof benchmarks] && inBottomPosition){
+        setInBottomPosition(false);
+        setRepsThisSet(prev => prev + 1);
+      }
+    })
+ 
+
+    setSetData(prev => [...prev, poseData]);
+
+    if(repsThisSet >= 8){
+      try {
+        const averageAngles: Record<string, number> = {};
+        neededAngles.forEach(angle => {
+          averageAngles[angle] = calculateAverage(
+            setData.map(d => d.angles[angle as keyof typeof d.angles])
+          );
+        });
+
+        const payload = {
+          setNumber: 3,
+          repsCompleted: repsThisSet,
+          averageAngles: averageAngles
+        };
+
+        const response = await fetch('http://localhost:3000/api/pose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          console.error('Backend response error:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Failed to send pose data:', error);
+      }
     }
   };
 
@@ -369,103 +448,7 @@ export default function App() {
                   {/* Video Overlays */}
                   {cameraActive && (
                     <>
-                      {/* Skeleton/Pose Overlay */}
-                      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
-                        {/* Skeleton lines */}
-                        <line x1="50%" y1="15%" x2="48%" y2="22%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="50%" y1="15%" x2="52%" y2="22%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="48%" y1="22%" x2="45%" y2="32%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="52%" y1="22%" x2="55%" y2="32%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="45%" y1="32%" x2="43%" y2="42%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="55%" y1="32%" x2="57%" y2="42%" stroke="rgba(16, 185, 129, 0.6)" strokeWidth="2" />
-                        <line x1="50%" y1="22%" x2="50%" y2="45%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="50%" y1="45%" x2="48%" y2="45%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="50%" y1="45%" x2="52%" y2="45%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="48%" y1="45%" x2="47%" y2="62%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="52%" y1="45%" x2="53%" y2="62%" stroke="rgba(251, 146, 60, 0.6)" strokeWidth="2" />
-                        <line x1="47%" y1="62%" x2="46%" y2="80%" stroke="rgba(34, 211, 238, 0.6)" strokeWidth="2" />
-                        <line x1="53%" y1="62%" x2="54%" y2="80%" stroke="rgba(16, 185, 129, 0.6)" strokeWidth="2" />
-                        
-                        {/* Joint nodes */}
-                        <circle cx="50%" cy="15%" r="4" fill="#22d3ee" />
-                        <circle cx="48%" cy="22%" r="4" fill="#22d3ee" />
-                        <circle cx="52%" cy="22%" r="4" fill="#22d3ee" />
-                        <circle cx="45%" cy="32%" r="4" fill="#22d3ee" />
-                        <circle cx="55%" cy="32%" r="4" fill="#22d3ee" />
-                        <circle cx="43%" cy="42%" r="4" fill="#22d3ee" />
-                        <circle cx="57%" cy="42%" r="4" fill="#10b981" />
-                        <circle cx="50%" cy="45%" r="4" fill="#22d3ee" />
-                        <circle cx="48%" cy="45%" r="4" fill="#22d3ee" />
-                        <circle cx="52%" cy="45%" r="4" fill="#22d3ee" />
-                        <circle cx="47%" cy="62%" r="4" fill="#22d3ee" />
-                        <circle cx="53%" cy="62%" r="4" fill="#fb923c" />
-                        <circle cx="46%" cy="80%" r="4" fill="#22d3ee" />
-                        <circle cx="54%" cy="80%" r="4" fill="#10b981" />
-                        
-                        {/* Angle indicator */}
-                        <path d="M 470 580 Q 480 590 490 600" stroke="rgba(251, 146, 60, 0.5)" strokeWidth="2" fill="none" />
-                        <text x="475" y="595" fill="#fb923c" fontSize="11" fontFamily="Inter, sans-serif" fontWeight="600">92°</text>
-                      </svg>
-
-                      {/* Top-left: Status Indicators */}
-                      <div className="absolute top-4 left-4 space-y-2 z-20">
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-cyan-500/50 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg">
-                          <VisibilityOutlined className="size-4 text-cyan-400" />
-                          <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">AI Tracking</span>
-                        </div>
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-emerald-500/50 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg">
-                          <GpsFixedOutlined className="size-4 text-emerald-400" />
-                          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">25 Keypoints</span>
-                        </div>
-                      </div>
-
-                      {/* Top-right: Rep Counter */}
-                      <div className="absolute top-4 right-4 z-20">
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-6 py-4 text-center shadow-lg">
-                          <div className="text-6xl font-bold text-cyan-400 tabular-nums leading-none">
-                            {String(metrics.reps).padStart(2, '0')}
-                          </div>
-                          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-2">Reps</div>
-                        </div>
-                      </div>
-
-                      {/* Bottom-left: Rep Progress & Metrics */}
-                      <div className="absolute bottom-4 left-4 z-20 space-y-3">
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-4 py-3 shadow-lg">
-                          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Depth</div>
-                          <div className="flex items-end gap-2">
-                            <div className="w-10 h-24 bg-slate-800 rounded relative overflow-hidden">
-                              <div className="absolute top-[25%] left-0 right-0 h-px bg-slate-600" />
-                              <div className="absolute top-[75%] left-0 right-0 h-px bg-slate-600" />
-                              <div 
-                                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded transition-all"
-                                style={{ height: `${metrics.rangeOfMotion}%` }}
-                              />
-                            </div>
-                            <div className="text-xl font-bold text-emerald-400 tabular-nums">{metrics.rangeOfMotion}%</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottom-right: Quick Stats */}
-                      <div className="absolute bottom-4 right-4 z-20 grid grid-cols-2 gap-2">
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-2 shadow-lg">
-                          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">HR</div>
-                          <div className="text-lg font-bold text-rose-400 tabular-nums">{metrics.heartRate}</div>
-                        </div>
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-2 shadow-lg">
-                          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Score</div>
-                          <div className="text-lg font-bold text-emerald-400 tabular-nums">{metrics.formScore}%</div>
-                        </div>
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-2 shadow-lg">
-                          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Knee</div>
-                          <div className="text-sm font-bold text-emerald-400">{metrics.kneeAlignment}</div>
-                        </div>
-                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg px-3 py-2 shadow-lg">
-                          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Path</div>
-                          <div className="text-sm font-bold text-amber-400">{metrics.barPath}</div>
-                        </div>
-                      </div>
+                
                     </>
                   )}
                 </>

@@ -158,14 +158,19 @@ export function usePoseDetection({
           if (canvasRef?.current && drawingUtilsRef.current && results.landmarks) {
             const ctx = canvasRef.current.getContext('2d');
             if (ctx) {
+              // Set canvas size to match video dimensions for proper alignment
+              if (videoRef.current) {
+                canvasRef.current.width = videoRef.current.videoWidth;
+                canvasRef.current.height = videoRef.current.videoHeight;
+              }
               ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
               drawingUtilsRef.current.drawLandmarks(landmarks, {
-                radius: 4,
-                fillColor: '#00FF00'
+                radius: 5,
+                fillColor: '#00bfff'
               });
               drawingUtilsRef.current.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
-                color: '#00AA00',
-                lineWidth: 2
+                color: '#00bfff',
+                lineWidth: 1
               });
             }
           }

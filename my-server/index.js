@@ -140,3 +140,22 @@ app.delete('/user/:id', (req, res, next) => {
     });
 });
 
+app.post("/api/pose", async (req, res) => {
+    
+    try{
+        const poseData = req.body;
+
+        const feedback = await client.messages.create({
+            model: "gpt-5-mini",
+            messages: [{
+                role: "user",
+                content: `put in a prompt engineering format for each expericise for : ${JSON.stringify(poseData.angles)}`
+            }]
+        })
+        res.json({feedback: feedback.content[0].text});
+    }
+    catch(error){
+        res.status(500).json({ error: "Failed to provide pose analysis" });
+    }
+});
+
