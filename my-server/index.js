@@ -1,10 +1,9 @@
 require('dotenv').config();
 
 const express = require('express');
-const { Activity } = require('react');
 const app = express();
 const morgan = require('morgan');
-const cors = require('cors');3
+const cors = require('cors');
 const OpenAI = require('openai');
 const PORT = process.env.PORT || 3000;
 
@@ -29,57 +28,7 @@ app.get('/user/:id', (req,res,next) => {
 }, (req, res, next) => {
     res.send(`Name: ${req.params.id}`);
 });
-
-app.post("/api/chat", async (req, res) =>{
-   try{
-    const { message } = req.body;
-
-    const response = await client.responses.create({
-        model : "gpt-5-mini",
-        input: message,
-    });
-
-    const reply = response.output_text;
-
-    res.json({ reply });
-   }
-   catch(error){
-    console.error(error);
-    res.status(500).json({ error: "Something went wrong"});
-   }
-});
-
-// MediaPipe Pose Detection Endpoint
-app.post("/api/pose", async (req, res) => {
-  try {
-    const { landmarks, angles, timestamp, sessionTime, metrics } = req.body;
-
-    // Log pose data for now
-    console.log(`[${new Date(timestamp).toISOString()}] Pose detected:`, {
-      leftKnee: angles.leftKnee,
-      rightKnee: angles.rightKnee,
-      leftHip: angles.leftHip,
-      rightHip: angles.rightHip,
-      sessionTime: sessionTime
-    });
-
-    // Here you can:
-    // 1. Store pose data in a database
-    // 2. Analyze biomechanics and generate feedback
-    // 3. Track rep counting and form quality
-    // 4. Send real-time feedback back to frontend
-
-    res.json({
-      status: 'ok',
-      message: 'Pose data received',
-      timestamp
-    });
-  } catch (error) {
-    console.error('Pose endpoint error:', error);
-    res.status(500).json({ error: 'Failed to process pose data' });
-  }
-});
-
+//
 app.post('/', (req,res, next) =>{
     const newUser = req.body;
     users.push(newUser);
@@ -142,19 +91,35 @@ app.delete('/user/:id', (req, res, next) => {
 
 app.post("/api/pose", async (req, res) => {
     
+    console.log("Received payload:", req.body);
     try{
-        const poseData = req.body;
+        const {setNumber, repsCompleted, exercise, averageAngles} = req.body;
+        const anglesList = Object.entries(averageAngles).map(([angleName, value]) => `Average ${angleName}: ${value}`).join('\n');
+        const userMessage = `
+            Set ${setNumber} ${exercise} Results:
+            Reps completed: ${repsCompleted}
+            ${anglesList}
 
-        const feedback = await client.messages.create({
-            model: "gpt-5-mini",
-            messages: [{
-                role: "user",
-                content: `put in a prompt engineering format for each expericise for : ${JSON.stringify(poseData.angles)}`
-            }]
+            Please analyze the user's form based on the provided angles and reps, and give them feedback on how to improve their form for the next set.
+            `;
+
+        const response = await client.chat.completions.create({
+            model : "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a personal trainer analyzing your clients joint angles for exercises on a per set basis and providing catered feedback and encouragement to help them improve their form and prevent injury. Provide positive reinforcement along with the dedicated information, explaining any terms that they may not know. You are to create this feedback that will then be fed to them immediately and help them improve before their next set."
+                },
+                {
+                    role: "user",
+                    content: userMessage
+                }
+            ]
         })
-        res.json({feedback: feedback.content[0].text});
+        res.json({feedback: response.choices[0].message.content});
     }
     catch(error){
+        console.error("Pose analysis error:", error);
         res.status(500).json({ error: "Failed to provide pose analysis" });
     }
 });
