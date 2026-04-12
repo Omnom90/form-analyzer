@@ -181,18 +181,28 @@ const getSeverityColor = (severity: string) => {
     const config = exerciseConfig[exercise];
     const benchmarks = config.repDetection;
     const angles = config.angles;
-    
-    angles.forEach(angle => {
+
+    const anyAngleInBottom = angles.some(angle => {
       const angleValue = poseData.angles[angle as keyof typeof poseData.angles];
-      if(angleValue != null && angleValue < benchmarks[`${angle}BottomAngle` as keyof typeof benchmarks] && !inBottomPositionRef.current){
-        inBottomPositionRef.current = true;
-      }
-      if(angleValue != null && angleValue > benchmarks[`${angle}TopAngle` as keyof typeof benchmarks] && inBottomPositionRef.current){
-        inBottomPositionRef.current = false;
-        repsThisSetRef.current += 1;
-        setRepsThisSet(repsThisSetRef.current);
-      }
+      return angleValue != null && angleValue < benchmarks[`${angle}BottomAngle` as keyof typeof benchmarks];
     });
+
+    if(anyAngleInBottom && !inBottomPositionRef.current){
+      inBottomPositionRef.current = true;
+    }
+
+    const allAnglesAtTop = angles.every(angle => {
+      const angleValue = poseData.angles[angle as keyof typeof poseData.angles];
+      return angleValue != null && angleValue > benchmarks[`${angle}TopAngle` as keyof typeof benchmarks];
+    });
+    
+    
+    if(allAnglesAtTop && inBottomPositionRef.current){
+      inBottomPositionRef.current = false;
+      repsThisSetRef.current += 1;
+      setRepsThisSet(repsThisSetRef.current); 
+    }
+      
  
 
     setDataRef.current.push(poseData);
