@@ -123,4 +123,3 @@ app.post("/api/pose", async (req, res) => {
         res.status(500).json({ error: "Failed to provide pose analysis" });
     }
 });
-
