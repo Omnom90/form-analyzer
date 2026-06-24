@@ -29,6 +29,23 @@ interface UsePoseDetectionOptions {
   enabled: boolean;
 }
 
+const SMOOTHING_WINDOW = 3;
+const VISIBILITY_THRESHOLD = 0.5;
+
+// Landmark indices that must be visible to compute each joint angle
+const JOINT_VISIBILITY_DEPS: Record<string, number[]> = {
+  leftElbow:    [11, 13, 15],
+  rightElbow:   [12, 14, 16],
+  leftShoulder: [23, 11, 13],
+  rightShoulder:[24, 12, 14],
+  leftHip:      [11, 23, 25],
+  rightHip:     [12, 24, 26],
+  leftKnee:     [23, 25, 27],
+  rightKnee:    [24, 26, 28],
+  leftAnkle:    [25, 27, 31],
+  rightAnkle:   [26, 28, 32],
+};
+
 export function usePoseDetection({
   videoRef,
   canvasRef,
@@ -41,7 +58,18 @@ export function usePoseDetection({
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate angle between three landmarks
+  // Per-joint angle history for smoothing
+  const angleHistoryRef = useRef<Record<string, number[]>>({});
+
+  const smoothAngle = useCallback((joint: string, raw: number): number => {
+    const history = angleHistoryRef.current[joint] ?? [];
+    history.push(raw);
+    if (history.length > SMOOTHING_WINDOW) history.shift();
+    angleHistoryRef.current[joint] = history;
+    return history.reduce((sum, v) => sum + v, 0) / history.length;
+  }, []);
+
+  // Calculate angle between three landmarks (2D, z ignored — coplanar assumption)
   const calculateAngle = useCallback((
     A: { x: number; y: number },
     B: { x: number; y: number },
@@ -62,27 +90,34 @@ export function usePoseDetection({
     return parseFloat((Math.acos(cosTheta) * (180 / Math.PI)).toFixed(1));
   }, []);
 
-  // Calculate all joint angles from landmarks
+  // Calculate all joint angles — null if any required landmark is low-visibility
   const calculateAllAngles = useCallback((landmarks: any[]) => {
+    const vis = (i: number) => (landmarks[i]?.visibility ?? 0) >= VISIBILITY_THRESHOLD;
     const p = (i: number) => landmarks[i];
 
-    return {
-      leftElbow: calculateAngle(p(11), p(13), p(15)),
-      rightElbow: calculateAngle(p(12), p(14), p(16)),
-      leftShoulder: calculateAngle(p(23), p(11), p(13)),
-      rightShoulder: calculateAngle(p(24), p(12), p(14)),
-      leftHip: calculateAngle(p(11), p(23), p(25)),
-      rightHip: calculateAngle(p(12), p(24), p(26)),
-      leftKnee: calculateAngle(p(23), p(25), p(27)),
-      rightKnee: calculateAngle(p(24), p(26), p(28)),
-      leftAnkle: calculateAngle(p(25), p(27), p(31)),
-      rightAnkle: calculateAngle(p(26), p(28), p(32)),
+    const maybeAngle = (joint: string, a: number, b: number, c: number): number | null => {
+      if (!vis(a) || !vis(b) || !vis(c)) return null;
+      const raw = calculateAngle(p(a), p(b), p(c));
+      return raw !== null ? smoothAngle(joint, raw) : null;
     };
-  }, [calculateAngle]);
+
+    return {
+      leftElbow:    maybeAngle('leftElbow',    11, 13, 15),
+      rightElbow:   maybeAngle('rightElbow',   12, 14, 16),
+      leftShoulder: maybeAngle('leftShoulder', 23, 11, 13),
+      rightShoulder:maybeAngle('rightShoulder',24, 12, 14),
+      leftHip:      maybeAngle('leftHip',      11, 23, 25),
+      rightHip:     maybeAngle('rightHip',     12, 24, 26),
+      leftKnee:     maybeAngle('leftKnee',     23, 25, 27),
+      rightKnee:    maybeAngle('rightKnee',    24, 26, 28),
+      leftAnkle:    maybeAngle('leftAnkle',    25, 27, 31),
+      rightAnkle:   maybeAngle('rightAnkle',   26, 28, 32),
+    };
+  }, [calculateAngle, smoothAngle]);
 
   // Initialize MediaPipe
   useEffect(() => {
-    //if (!enabled) return;
+    if (!enabled) return;
 
     const initMediaPipe = async () => {
       try {
@@ -164,13 +199,15 @@ export function usePoseDetection({
                 canvasRef.current.height = videoRef.current.videoHeight;
               }
               ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+              drawingUtilsRef.current.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
+                color: 'rgba(74,222,128,0.75)',
+                lineWidth: 3,
+              });
               drawingUtilsRef.current.drawLandmarks(landmarks, {
                 radius: 5,
-                fillColor: '#00bfff'
-              });
-              drawingUtilsRef.current.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
-                color: '#00bfff',
-                lineWidth: 1
+                fillColor: 'rgba(255,255,255,0.9)',
+                color: 'rgba(74,222,128,0.9)',
+                lineWidth: 2,
               });
             }
           }
@@ -189,6 +226,8 @@ export function usePoseDetection({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      // Clear smoothing history so stale angles don't bleed into the next set
+      angleHistoryRef.current = {};
     };
   }, [enabled, isInitialized, onPoseDetected, calculateAllAngles, videoRef, canvasRef]);
 

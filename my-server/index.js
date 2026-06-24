@@ -4,122 +4,106 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 
-const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY,
-});
+const geminiKey = process.env.GEMINI_API_KEY;
+const genAI = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
 
-app.get('/', (req, res, next) => {
+app.get('/', (req, res) => {
     res.json('hi guys, server is running! welcome to the main page');
 });
 
-app.get('/user', (req,res) => {
+app.get('/user', (req, res) => {
     res.json('profiles page');
-
 });
-app.get('/user/:id', (req,res,next) => {
+
+app.get('/user/:id', (req, res, next) => {
     console.log('ID: ', req.params.id);
     next();
-}, (req, res, next) => {
+}, (req, res) => {
     res.send(`Name: ${req.params.id}`);
 });
-//
-app.post('/', (req,res, next) =>{
+
+app.post('/', (req, res) => {
     const newUser = req.body;
     users.push(newUser);
     res.status(201).send("User created");
 });
 
-let users  = [
-    {users:'maya', content: "idkbruhjusttesting"},
-    {users:'ohm', content: "same"},
-    {users:'elizabeth', content: "hello"},
-    {users:'jonny', content: "idksmthross"},
-    {users:'martin', content: "notreallysure"},
-    {users: 'avi', content: "smthecon"}
-]
+let users = [
+    { users: 'maya', content: "idkbruhjusttesting" },
+    { users: 'ohm', content: "same" },
+    { users: 'elizabeth', content: "hello" },
+    { users: 'jonny', content: "idksmthross" },
+    { users: 'martin', content: "notreallysure" },
+    { users: 'avi', content: "smthecon" }
+];
 
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
-//put route
 app.put('/user/:id', (req, res) => {
     const userId = req.params.id;
     const updatedData = req.body;
-
     const userIndex = users.findIndex(user => user.users === userId);
-
     if (userIndex === -1) {
         return res.status(404).json({ message: `User '${userId}' not found` });
     }
-
     users[userIndex] = { ...users[userIndex], ...updatedData };
-
-    res.status(200).json({
-        message: `User '${userId}' updated successfully`,
-        updatedUser: users[userIndex]
-    });
+    res.status(200).json({ message: `User '${userId}' updated successfully`, updatedUser: users[userIndex] });
 });
 
-// delete route
 app.delete('/user/:id', (req, res, next) => {
     console.log('Attempting to delete user: ', req.params.id);
     next();
-}, (req, res, next) => {
+}, (req, res) => {
     const username = req.params.id;
-
     const userIndex = users.findIndex(u => u.users === username);
-
     if (userIndex === -1) {
         return res.status(404).send(`User ${username} not found`);
     }
-
     const deletedUser = users.splice(userIndex, 1);
-
-    res.status(200).json({
-        message: `User deleted successfully`,
-        deleted: deletedUser[0]
-    });
+    res.status(200).json({ message: `User deleted successfully`, deleted: deletedUser[0] });
 });
 
 app.post("/api/pose", async (req, res) => {
-    
     console.log("Received payload:", req.body);
-    try{
-        const {setNumber, repsCompleted, exercise, averageAngles} = req.body;
-        const anglesList = Object.entries(averageAngles).map(([angleName, value]) => `Average ${angleName}: ${value}`).join('\n');
-        const userMessage = `
-            Set ${setNumber} ${exercise} Results:
-            Reps completed: ${repsCompleted}
-            ${anglesList}
+    try {
+        if (!genAI) {
+            return res.status(503).json({ error: "GEMINI_API_KEY is not set in my-server/.env" });
+        }
 
-            Please analyze the user's form based on the provided angles and reps, and give them feedback on how to improve their form for the next set.
-            `;
+        const { setNumber, repsCompleted, exercise, averageAngles } = req.body;
+        const anglesList = Object.entries(averageAngles)
+            .map(([angleName, value]) => `  ${angleName}: ${Number(value).toFixed(1)}°`)
+            .join('\n');
 
-        const response = await client.chat.completions.create({
-            model : "gpt-4o-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are a personal trainer analyzing your clients joint angles for exercises on a per set basis and providing catered feedback and encouragement to help them improve their form and prevent injury. Provide positive reinforcement along with the dedicated information, explaining any terms that they may not know. You are to create this feedback that will then be fed to them immediately and help them improve before their next set."
-                },
-                {
-                    role: "user",
-                    content: userMessage
-                }
-            ]
-        })
-        res.json({feedback: response.choices[0].message.content});
+        const prompt = `You are a personal trainer giving quick, encouraging form feedback after a set.
+
+Set ${setNumber} — ${exercise}
+Reps completed: ${repsCompleted}
+Average joint angles:
+${anglesList}
+
+Give 2-3 sentences of feedback: one positive observation, then one specific improvement cue for the next set. Plain language, no jargon.`;
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            generationConfig: { maxOutputTokens: 200 }
+        });
+
+        const result = await model.generateContent(prompt);
+        const feedback = result.response.text();
+
+        res.json({ feedback });
+    } catch (error) {
+        console.error("Pose analysis error:", error.message);
+        res.status(500).json({ error: error.message ?? "Failed to provide pose analysis" });
     }
-    catch(error){
-        console.error("Pose analysis error:", error);
-        res.status(500).json({ error: "Failed to provide pose analysis" });
-    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

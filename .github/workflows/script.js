@@ -1,3 +1,7 @@
+// PROTOTYPE — early browser-only proof of concept using MediaPipe FaceMesh.
+// Predates the current React/Vite architecture. Not a GitHub Actions workflow.
+// Kept for reference; not used by the running application.
+
 const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('canvas');
 const canvasCtx = canvasElement.getContext('2d');

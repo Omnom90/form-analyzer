@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
+  <!-- Head -->
+  <circle cx="64" cy="19" r="13" fill="#1a2018"/>
+  <!-- Body swoosh - mint green -->
+  <path d="M18 105 C 8 75 22 40 55 28 C 75 22 90 38 82 60 C 74 82 42 102 18 105Z" fill="#4ade80"/>
+  <!-- Foot/base - dark charcoal -->
+  <path d="M50 94 L78 98 L72 114 L44 108Z" fill="#1a2018"/>
+</svg>
