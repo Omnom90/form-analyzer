@@ -5,11 +5,13 @@ const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
 const OpenAI = require('openai');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
+const { RateLimiterRedis } = require('rate-limiter-flexible');
+const Redis = require('ioredis');
 const PORT = process.env.PORT || 3000;
 
-const perIpLimiter = new RateLimiterMemory({ points: 5, duration: 300 });
-const globalLimiter = new RateLimiterMemory({ points: 25, duration: 60 });
+const redis = new Redis(process.env.REDIS_URL, { tls: { rejectUnauthorized: false } });
+const perIpLimiter = new RateLimiterRedis({ storeClient: redis, keyPrefix: 'rl_ip', points: 5, duration: 300 });
+const globalLimiter = new RateLimiterRedis({ storeClient: redis, keyPrefix: 'rl_global', points: 25, duration: 60 });
 
 app.use(express.json());
 app.use(cors());
