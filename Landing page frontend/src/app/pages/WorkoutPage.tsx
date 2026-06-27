@@ -147,7 +147,7 @@ export default function WorkoutPage() {
     });
 
     try {
-      const res = await fetch('http://localhost:3000/api/pose', {
+      const res = await fetch('https://form-analyzer-wip.vercel.app/api/pose', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

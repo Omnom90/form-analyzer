@@ -201,6 +201,8 @@ function HeroSection({ navigate }: { navigate: ReturnType<typeof useNavigate> })
         >
           Your form,<br />
           <span style={{ color: '#4ade80' }}>perfected.</span>
+          <br />
+          <span style={{ fontSize: 'clamp(12px, 1.2vw, 14px)', fontWeight: 500, color: 'rgba(224,235,224,0.35)', letterSpacing: '0.08em' }}>(ALPHA v1.0.0)</span>
         </h1>
 
         <p
