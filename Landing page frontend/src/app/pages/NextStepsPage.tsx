@@ -36,7 +36,8 @@ export default function NextStepsPage() {
         </div>
         <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
           <button className="nav-link-ns" onClick={() => navigate('/')}>Home</button>
-          <button className="nav-link-ns" onClick={() => navigate('/workout')}>Train</button>
+          <button className="nav-link-ns" onClick={() => navigate('/#how-it-works')}>How it works</button>
+          <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why RishFits</button>
           <button
             onClick={() => navigate('/workout')}
             style={{ background: '#4ade80', color: '#080c10', border: 'none', fontWeight: 700, cursor: 'pointer', padding: '9px 20px', borderRadius: '8px', fontSize: '14px', transition: 'background 0.2s' }}
@@ -59,20 +60,19 @@ export default function NextStepsPage() {
             What's Next for<br />RishFits.
           </h1>
           <p style={{ fontSize: '17px', color: 'rgba(224,235,224,0.5)', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
-            This is a working prototype that demonstrates real-time pose detection and AI-powered coaching in the browser.
-            Here's where it goes from here.
+            A working prototype. Real-time pose detection, AI coaching, all running in the browser. Here's what's next.
           </p>
         </div>
 
         {/* Roadmap */}
         <Section title="Roadmap" label="What's coming">
           {[
-            { status: 'next', title: 'Multi-exercise library', detail: 'Deadlift, overhead press, lunge, Romanian deadlift — each with calibrated angle thresholds and exercise-specific coaching prompts.' },
-            { status: 'next', title: 'Session history', detail: 'Persist set/rep data and feedback in browser localStorage so athletes can track form trends over multiple sessions.' },
-            { status: 'next', title: 'Export as JSON / CSV', detail: 'Download raw joint angle data from any session for further analysis in Python, Excel, or any analytics tool.' },
-            { status: 'future', title: 'Mobile app (React Native)', detail: 'Port the MediaPipe model to a native app so users can position their phone and train without needing a laptop.' },
-            { status: 'future', title: 'Side-by-side comparison', detail: 'Record a reference clip (e.g. the user at their best form), then overlay it next to the live feed in real time.' },
-            { status: 'future', title: 'Wearable integration', detail: 'Sync heart rate and acceleration data from Apple Watch or Garmin to correlate fatigue with form breakdown.' },
+            { status: 'next', title: 'More exercises', detail: 'Deadlift, overhead press, lunge, Romanian deadlift. Each with their own angle thresholds and coaching prompts.' },
+            { status: 'next', title: 'Session history', detail: 'Save your sets and feedback in the browser so you can track form trends over time.' },
+            { status: 'next', title: 'Export data', detail: 'Download joint angle data from any session. Works with Python, Excel, or whatever you use for analysis.' },
+            { status: 'future', title: 'Mobile app', detail: 'Bring the pose model to a native app so you can prop up your phone and train anywhere.' },
+            { status: 'future', title: 'Side-by-side comparison', detail: 'Record a clip of your best form, then overlay it next to the live feed to spot the difference.' },
+            { status: 'future', title: 'Wearable integration', detail: 'Pull heart rate and movement data from Apple Watch or Garmin to see how fatigue affects your form.' },
           ].map(item => (
             <div key={item.title} className="roadmap-item">
               <div style={{
@@ -124,7 +124,7 @@ export default function NextStepsPage() {
         </Section>
 
         {/* Client */}
-        <Section title="Client" label="Who this is for">
+        <Section title="Client" label="Who this is for" id="about">
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -135,13 +135,11 @@ export default function NextStepsPage() {
               <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.3)', marginBottom: '12px' }}>About</div>
               <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#f0f7f0', marginBottom: '14px', letterSpacing: '-0.01em' }}>Rishane Oak</h3>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '24px' }}>
-                Rishane Oak is a fitness coach and content creator focused on making high-quality training guidance accessible.
-                Through RishFits, he helps athletes of all levels understand how to move well — with form cues grounded in biomechanics,
-                not guesswork.
+                Rishane Oak is a fitness coach and content creator working to make quality training guidance more accessible.
+                Through RishFits, he helps people move better, with coaching backed by biomechanics rather than guesswork.
               </p>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '28px' }}>
-                This tool was built to extend that mission: giving anyone, anywhere, a real-time mirror for their form — without
-                needing a trainer in the room.
+                This tool is an extension of that: a real-time mirror for your form, no trainer required.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 <a href="https://www.rishfits.com/" target="_blank" rel="noopener noreferrer" className="ns-link">
@@ -209,9 +207,7 @@ export default function NextStepsPage() {
               <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#f0f7f0', marginBottom: '6px', letterSpacing: '-0.01em' }}>Ohm Kumblekere</h3>
               <div style={{ fontSize: '13px', color: 'rgba(224,235,224,0.4)', marginBottom: '14px', fontFamily: 'DM Mono, monospace' }}>ohmkumbl@umich.edu</div>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, maxWidth: '520px', margin: 0 }}>
-                Designed and built this tool end to end — from MediaPipe pose pipeline integration, rep detection algorithm,
-                AI coaching backend, to the full-stack architecture and UI. The goal was to ship something genuinely useful,
-                not just a demo.
+                Designed and built end to end: pose pipeline, rep detection, AI backend, and UI. Built to be genuinely useful, not just a proof of concept.
               </p>
             </div>
           </div>
@@ -233,7 +229,7 @@ export default function NextStepsPage() {
   );
 }
 
-function Section({ title, label, children }: { title: string; label: string; children: React.ReactNode }) {
+function Section({ title, label, id, children }: { title: string; label: string; id?: string; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -245,8 +241,10 @@ function Section({ title, label, children }: { title: string; label: string; chi
 
   return (
     <div
+      id={id}
       ref={ref}
       style={{
+        scrollMarginTop: '80px',
         marginBottom: '72px',
         opacity: visible ? 1 : 0,
         transform: visible ? 'none' : 'translateY(24px)',

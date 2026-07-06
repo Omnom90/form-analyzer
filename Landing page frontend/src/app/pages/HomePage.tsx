@@ -32,15 +32,10 @@ export default function HomePage() {
           from { opacity: 0; transform: translateY(28px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes scrollBounce {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(6px); }
-        }
         .fade-up { animation: fadeUp 0.8s ease forwards; }
         .fade-up-d1 { animation: fadeUp 0.8s 0.15s ease forwards; opacity: 0; }
         .fade-up-d2 { animation: fadeUp 0.8s 0.30s ease forwards; opacity: 0; }
         .fade-up-d3 { animation: fadeUp 0.8s 0.45s ease forwards; opacity: 0; }
-        .scroll-hint { animation: scrollBounce 2s ease-in-out infinite; }
         .step-card:hover { border-color: rgba(74,222,128,0.3); transform: translateY(-3px); }
         .why-card:hover  { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.04); }
         .nav-link { color: rgba(224,235,224,0.55); font-size: 14px; text-decoration: none; transition: color 0.2s; }
@@ -72,6 +67,23 @@ export default function HomePage() {
       <WhySection />
       <FooterCTA navigate={navigate} />
     </div>
+  );
+}
+
+function ScrollCue({ direction, targetId }: { direction: 'up' | 'down'; targetId: string }) {
+  return (
+    <button
+      onClick={() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' })}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(74,222,128,0.75)', padding: '6px', transition: 'color 0.2s', display: 'flex', alignItems: 'center' }}
+      onMouseEnter={e => (e.currentTarget.style.color = '#4ade80')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(74,222,128,0.75)')}
+    >
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {direction === 'up'
+          ? <polyline points="18 15 12 9 6 15" />
+          : <polyline points="6 9 12 15 18 9" />}
+      </svg>
+    </button>
   );
 }
 
@@ -109,7 +121,8 @@ function Nav({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
         <a className="nav-link" href="#how-it-works">How it works</a>
         <a className="nav-link" href="#why">Why RishFits</a>
-        <a className="nav-link" onClick={() => navigate('/next-steps')} style={{ cursor: 'pointer' }}>About</a>
+        <a className="nav-link" onClick={() => navigate('/next-steps')} style={{ cursor: 'pointer' }}>Project Roadmap</a>
+        <a className="nav-link" onClick={() => navigate('/next-steps#about')} style={{ cursor: 'pointer' }}>About</a>
         <button
           className="cta-btn"
           onClick={() => navigate('/workout')}
@@ -125,6 +138,7 @@ function Nav({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 function HeroSection({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
   return (
     <section
+      id="hero"
       style={{
         position: 'relative',
         height: '100vh',
@@ -202,7 +216,7 @@ function HeroSection({ navigate }: { navigate: ReturnType<typeof useNavigate> })
           Your form,<br />
           <span style={{ color: '#4ade80' }}>perfected.</span>
           <br />
-          <span style={{ fontSize: 'clamp(12px, 1.2vw, 14px)', fontWeight: 500, color: 'rgba(224,235,224,0.35)', letterSpacing: '0.08em' }}>(ALPHA v1.0.0)</span>
+          <span style={{ fontSize: 'clamp(12px, 1.2vw, 14px)', fontWeight: 500, color: 'rgba(224,235,224,0.35)', letterSpacing: '0.08em' }}>(ALPHA v1.0.1)</span>
         </h1>
 
         <p
@@ -237,24 +251,8 @@ function HeroSection({ navigate }: { navigate: ReturnType<typeof useNavigate> })
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <div
-        className="scroll-hint"
-        style={{
-          position: 'absolute',
-          bottom: '36px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          opacity: 0.3,
-          zIndex: 1,
-        }}
-      >
-        <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom, transparent, #4ade80)' }} />
-        <span style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#4ade80' }}>scroll</span>
+      <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 1 }}>
+        <ScrollCue direction="down" targetId="how-it-works" />
       </div>
     </section>
   );
@@ -274,17 +272,17 @@ function HowItWorksSection() {
     {
       number: '01',
       title: 'Open your camera',
-      body: 'No signup, no app install, no data uploads. Open the session page and allow camera access — that\'s it.',
+      body: 'No signup. No install. No uploads. Just open the session page, allow camera access, and you\'re in.',
     },
     {
       number: '02',
       title: 'Move through your set',
-      body: 'MediaPipe tracks 33 body landmarks in real time. The skeleton overlays your body so you can see exactly what\'s being analyzed.',
+      body: 'MediaPipe tracks 33 points on your body in real time. A skeleton overlay shows exactly what\'s being picked up.',
     },
     {
       number: '03',
       title: 'Get your coaching',
-      body: 'After each set, an AI reviews your average joint angles and gives you 2–3 sentences of specific, actionable feedback.',
+      body: 'After each set, the AI looks at your joint angles and tells you what to fix. Direct feedback, not generic tips.',
     },
   ];
 
@@ -293,6 +291,7 @@ function HowItWorksSection() {
       id="how-it-works"
       ref={ref}
       style={{
+        scrollMarginTop: '64px',
         padding: 'clamp(80px, 12vw, 160px) 40px',
         maxWidth: '1100px',
         margin: '0 auto',
@@ -358,6 +357,10 @@ function HowItWorksSection() {
           </div>
         ))}
       </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '56px' }}>
+        <ScrollCue direction="up" targetId="hero" />
+        <ScrollCue direction="down" targetId="why" />
+      </div>
     </section>
   );
 }
@@ -386,7 +389,7 @@ function WhySection() {
     {
       icon: '🧠',
       title: 'Honest AI coaching',
-      body: 'Prompt engineered by Rishane. Feedback is grounded in your actual joint angles — not generic advice pulled from a database.',
+      body: 'Prompt engineered by Rishane. Feedback is based on your actual joint angles, not generic tips pulled from a database.',
     },
   ];
 
@@ -395,6 +398,7 @@ function WhySection() {
       id="why"
       ref={ref}
       style={{
+        scrollMarginTop: '64px',
         padding: 'clamp(80px, 12vw, 160px) 40px',
         background: 'rgba(74,222,128,0.02)',
         borderTop: '1px solid rgba(74,222,128,0.07)',
@@ -453,6 +457,10 @@ function WhySection() {
             </div>
           ))}
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '56px' }}>
+          <ScrollCue direction="up" targetId="how-it-works" />
+          <ScrollCue direction="down" targetId="footer-cta" />
+        </div>
       </div>
     </section>
   );
@@ -470,6 +478,7 @@ function FooterCTA({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 
   return (
     <section
+      id="footer-cta"
       ref={ref}
       style={{
         padding: 'clamp(80px, 12vw, 160px) 40px',
@@ -511,6 +520,9 @@ function FooterCTA({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
         >
           Start a Session
         </button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '48px' }}>
+          <ScrollCue direction="up" targetId="why" />
+        </div>
       </div>
 
       {/* Footer */}

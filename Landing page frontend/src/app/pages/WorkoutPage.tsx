@@ -54,6 +54,7 @@ const formatTime = (seconds: number) => {
   const s = seconds % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
+const formatRestTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
 const calculateAverage = (numbers: (number | null)[]): number => {
   const nums = numbers.filter((n): n is number => n !== null);
@@ -75,6 +76,12 @@ export default function WorkoutPage() {
   useEffect(() => { countdownValueRef.current = countdownValue; }, [countdownValue]);
 
   const [isPositionOk, setIsPositionOk] = useState(false);
+  const [positionGatedCountdown, setPositionGatedCountdown] = useState(false);
+  const [restTimerMode, setRestTimerMode] = useState<'digital' | 'stopwatch'>('digital');
+  const [restTimerDuration, setRestTimerDuration] = useState(60);
+  const [restTimerValue, setRestTimerValue] = useState<number | null>(null);
+  const [restTimerPausedAt, setRestTimerPausedAt] = useState<number | null>(null);
+  const [restTimerCustomInput, setRestTimerCustomInput] = useState('');
   const [sessionTime, setSessionTime] = useState(0);
   const sessionTimeRef = useRef(0);
 
@@ -114,6 +121,8 @@ export default function WorkoutPage() {
       setCameraActive(true);
       setError('');
       setCountdownValue(countdownDuration);
+      setRestTimerValue(null);
+      setRestTimerPausedAt(null);
     } catch {
       setError('CAMERA_ACCESS_DENIED');
     }
@@ -163,14 +172,14 @@ export default function WorkoutPage() {
         severity: res.ok ? (stopped ? 'warning' : 'good') : 'critical',
         title: res.ok
           ? (stopped ? `Set ${currentSetRef.current} (Stopped Early)` : `Set ${currentSetRef.current} Complete`)
-          : `Set ${currentSetRef.current} — Analysis Failed`,
+          : `Set ${currentSetRef.current}: Analysis Failed`,
         message: data.feedback ?? data.error ?? 'Unknown error',
       }]);
     } catch {
       setFeedbackItems(prev => [...prev, {
         time: formatTime(sessionTimeRef.current),
         severity: 'critical',
-        title: `Set ${currentSetRef.current} — Connection Error`,
+        title: `Set ${currentSetRef.current}: Connection Error`,
         message: 'Could not reach the backend. Make sure the server is running.',
       }]);
     }
@@ -219,19 +228,27 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (cameraActive && !isPaused) {
+      if (cameraActive && !isPaused && countdownValue === null) {
         setSessionTime(prev => { const n = prev + 1; sessionTimeRef.current = n; return n; });
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [cameraActive, isPaused]);
+  }, [cameraActive, isPaused, countdownValue]);
 
   useEffect(() => {
     if (countdownValue === null) return;
     if (countdownValue === 0) { const t = setTimeout(() => setCountdownValue(null), 600); return () => clearTimeout(t); }
+    if (positionGatedCountdown && !isPositionOk) return;
     const t = setTimeout(() => setCountdownValue(v => v !== null ? v - 1 : null), 1000);
     return () => clearTimeout(t);
-  }, [countdownValue]);
+  }, [countdownValue, positionGatedCountdown, isPositionOk]);
+
+  useEffect(() => {
+    if (restTimerValue === null) return;
+    if (restTimerMode === 'digital' && restTimerValue === 0) { setRestTimerValue(null); return; }
+    const t = setTimeout(() => setRestTimerValue(v => v !== null ? (restTimerMode === 'digital' ? v - 1 : v + 1) : null), 1000);
+    return () => clearTimeout(t);
+  }, [restTimerValue, restTimerMode]);
 
   const getSeverityColor = (s: string) => {
     if (s === 'good') return { border: '#22c55e', bg: 'rgba(34,197,94,0.07)', text: '#bbf7d0', title: '#4ade80' };
@@ -288,9 +305,9 @@ export default function WorkoutPage() {
       }}>
         <button
           onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(224,235,224,0.45)', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 0', transition: 'color 0.2s' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(224,235,224,0.62)', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 0', transition: 'color 0.2s' }}
           onMouseEnter={e => (e.currentTarget.style.color = '#4ade80')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(224,235,224,0.45)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(224,235,224,0.62)')}
         >
           <ArrowBackOutlined style={{ fontSize: 18 }} />
         </button>
@@ -311,7 +328,7 @@ export default function WorkoutPage() {
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           background: cameraActive ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
-          color: cameraActive ? '#4ade80' : 'rgba(224,235,224,0.3)',
+          color: cameraActive ? '#4ade80' : 'rgba(224,235,224,0.48)',
           border: `1px solid ${cameraActive ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.08)'}`,
           display: 'flex',
           alignItems: 'center',
@@ -341,7 +358,7 @@ export default function WorkoutPage() {
             /* Setup mode */
             <>
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.35)', marginBottom: '10px' }}>Exercise</div>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '10px' }}>Exercise</div>
                 <select
                   className="rf-select"
                   value={exercise}
@@ -369,7 +386,7 @@ export default function WorkoutPage() {
                   const max = label === 'Sets' ? 10 : 30;
                   return (
                     <div key={label}>
-                      <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.35)', marginBottom: '8px' }}>{label}</div>
+                      <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '8px' }}>{label}</div>
                       <input
                         type="number"
                         min={1}
@@ -397,7 +414,7 @@ export default function WorkoutPage() {
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.35)', marginBottom: '10px' }}>Countdown</div>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '10px' }}>Countdown</div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {([3, 5, 10] as const).map(s => (
                     <button
@@ -411,7 +428,7 @@ export default function WorkoutPage() {
                         fontWeight: 700,
                         border: countdownDuration === s ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(255,255,255,0.07)',
                         background: countdownDuration === s ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.03)',
-                        color: countdownDuration === s ? '#4ade80' : 'rgba(224,235,224,0.4)',
+                        color: countdownDuration === s ? '#4ade80' : 'rgba(224,235,224,0.57)',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                       }}
@@ -420,6 +437,181 @@ export default function WorkoutPage() {
                     </button>
                   ))}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={positionGatedCountdown}
+                    onChange={e => setPositionGatedCountdown(e.target.checked)}
+                    style={{ accentColor: '#4ade80', width: '14px', height: '14px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '12px', color: 'rgba(224,235,224,0.62)' }}>Wait for joints in frame before starting</span>
+                </label>
+              </div>
+
+              {/* Rest Timer */}
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '10px' }}>Rest Timer</div>
+                {/* Mode toggle */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                  {(['digital', 'stopwatch'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => { setRestTimerMode(mode); setRestTimerValue(null); setRestTimerPausedAt(null); }}
+                      style={{
+                        flex: 1,
+                        padding: '7px 0',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        textTransform: 'capitalize',
+                        border: restTimerMode === mode ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                        background: restTimerMode === mode ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.03)',
+                        color: restTimerMode === mode ? '#4ade80' : 'rgba(224,235,224,0.57)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+
+                {restTimerMode === 'digital' ? (
+                  <>
+                    {/* Duration presets */}
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                      {([30, 60, 120] as const).map(s => (
+                        <button
+                          key={s}
+                          onClick={() => { setRestTimerDuration(s); setRestTimerValue(null); setRestTimerPausedAt(null); }}
+                          style={{
+                            flex: 1,
+                            padding: '6px 0',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            border: restTimerDuration === s ? '1px solid rgba(74,222,128,0.35)' : '1px solid rgba(255,255,255,0.06)',
+                            background: restTimerDuration === s ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.02)',
+                            color: restTimerDuration === s ? '#4ade80' : 'rgba(224,235,224,0.52)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {s < 60 ? `${s}s` : `${s / 60}m`}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Custom duration input */}
+                    <div style={{ marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        value={restTimerCustomInput}
+                        placeholder="0:00"
+                        maxLength={5}
+                        onChange={e => {
+                          const raw = e.target.value;
+                          setRestTimerCustomInput(raw);
+                          const match = raw.match(/^(\d{1,2}):([0-5]\d)$/);
+                          if (match) {
+                            const total = parseInt(match[1]) * 60 + parseInt(match[2]);
+                            if (total >= 1 && total <= 3599) {
+                              setRestTimerDuration(total);
+                              setRestTimerValue(null);
+                              setRestTimerPausedAt(null);
+                            }
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${restTimerCustomInput && !restTimerCustomInput.match(/^(\d{1,2}):([0-5]\d)$/) ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: '6px',
+                          color: '#e0ebe0',
+                          padding: '6px 10px',
+                          fontSize: '13px',
+                          fontFamily: 'DM Mono, monospace',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                    {/* Digital display */}
+                    <div style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '38px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                      {formatRestTime(restTimerValue ?? restTimerDuration)}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        onClick={() => {
+                          if (restTimerValue !== null) {
+                            setRestTimerPausedAt(restTimerValue);
+                            setRestTimerValue(null);
+                          } else {
+                            setRestTimerValue(restTimerPausedAt ?? restTimerDuration);
+                            setRestTimerPausedAt(null);
+                          }
+                        }}
+                        style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.08)', color: '#4ade80', cursor: 'pointer' }}
+                      >
+                        {restTimerValue !== null ? 'Pause' : restTimerPausedAt !== null ? 'Resume' : 'Start'}
+                      </button>
+                      <button
+                        onClick={() => { setRestTimerValue(null); setRestTimerPausedAt(null); }}
+                        style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)', color: 'rgba(224,235,224,0.57)', cursor: 'pointer' }}
+                      >
+                        ↺
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Analog stopwatch at 60 BPM */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                      <svg width="96" height="96" viewBox="0 0 96 96">
+                        <circle cx="48" cy="48" r="44" fill="none" stroke="rgba(74,222,128,0.12)" strokeWidth="2" />
+                        <circle cx="48" cy="48" r="44" fill="none" stroke="rgba(74,222,128,0.06)" strokeWidth="1" strokeDasharray="3 5.5" />
+                        {/* Tick marks */}
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const a = (i * 30 - 90) * Math.PI / 180;
+                          const r1 = 38, r2 = 43;
+                          return <line key={i} x1={48 + r1 * Math.cos(a)} y1={48 + r1 * Math.sin(a)} x2={48 + r2 * Math.cos(a)} y2={48 + r2 * Math.sin(a)} stroke="rgba(74,222,128,0.4)" strokeWidth="1.5" strokeLinecap="round" />;
+                        })}
+                        {/* Second hand */}
+                        {(() => {
+                          const elapsed = restTimerValue ?? 0;
+                          const angle = (elapsed % 60) * 6 - 90;
+                          const rad = angle * Math.PI / 180;
+                          return <line x1="48" y1="48" x2={48 + 34 * Math.cos(rad)} y2={48 + 34 * Math.sin(rad)} stroke="#4ade80" strokeWidth="2" strokeLinecap="round" style={{ transition: restTimerValue !== null ? 'none' : undefined }} />;
+                        })()}
+                        <circle cx="48" cy="48" r="3" fill="#4ade80" />
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                      {formatRestTime(restTimerValue ?? 0)}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        onClick={() => {
+                          if (restTimerValue !== null) {
+                            setRestTimerPausedAt(restTimerValue);
+                            setRestTimerValue(null);
+                          } else {
+                            setRestTimerValue(restTimerPausedAt ?? 0);
+                            setRestTimerPausedAt(null);
+                          }
+                        }}
+                        style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.08)', color: '#4ade80', cursor: 'pointer' }}
+                      >
+                        {restTimerValue !== null ? 'Pause' : restTimerPausedAt !== null ? 'Resume' : 'Start'}
+                      </button>
+                      <button
+                        onClick={() => { setRestTimerValue(null); setRestTimerPausedAt(null); }}
+                        style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)', color: 'rgba(224,235,224,0.57)', cursor: 'pointer' }}
+                      >
+                        ↺
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               <button
@@ -434,7 +626,7 @@ export default function WorkoutPage() {
             /* Active mode */
             <>
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.35)', marginBottom: '6px' }}>Exercise</div>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '6px' }}>Exercise</div>
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#e0ebe0' }}>{config.label}</div>
               </div>
 
@@ -445,10 +637,10 @@ export default function WorkoutPage() {
                 borderRadius: '12px',
                 padding: '20px',
               }}>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.35)', marginBottom: '8px' }}>Set</div>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '8px' }}>Set</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontSize: '48px', fontWeight: 900, color: '#e0ebe0', fontFamily: 'DM Mono, monospace', lineHeight: 1 }}>{currentSet}</span>
-                  <span style={{ fontSize: '20px', color: 'rgba(224,235,224,0.3)', fontFamily: 'DM Mono, monospace' }}>/ {targetSets}</span>
+                  <span style={{ fontSize: '20px', color: 'rgba(224,235,224,0.48)', fontFamily: 'DM Mono, monospace' }}>/ {targetSets}</span>
                 </div>
               </div>
 
@@ -528,7 +720,12 @@ export default function WorkoutPage() {
             {/* Countdown overlay */}
             {cameraActive && countdownValue !== null && (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,12,16,0.55)', zIndex: 20 }}>
-                {countdownValue > 0 ? (
+                {positionGatedCountdown && !isPositionOk ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ fontSize: '28px', fontWeight: 800, color: '#f59e0b', textShadow: '0 0 30px rgba(245,158,11,0.6)' }}>Get in position</div>
+                    <div style={{ fontSize: '13px', color: 'rgba(224,235,224,0.67)', fontFamily: 'DM Mono, monospace' }}>Countdown starts when joints are detected</div>
+                  </div>
+                ) : countdownValue > 0 ? (
                   <div
                     key={countdownValue}
                     className="countdown-digit"
@@ -547,7 +744,7 @@ export default function WorkoutPage() {
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#080c10', zIndex: 30, padding: '32px' }}>
                 <VideocamOutlined style={{ fontSize: 48, color: '#ef4444', marginBottom: '16px' }} />
                 <h3 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px', color: '#f0f7f0' }}>Camera Access Required</h3>
-                <p style={{ fontSize: '14px', color: 'rgba(224,235,224,0.5)', textAlign: 'center', maxWidth: '360px', marginBottom: '28px', lineHeight: 1.65 }}>
+                <p style={{ fontSize: '14px', color: 'rgba(224,235,224,0.67)', textAlign: 'center', maxWidth: '360px', marginBottom: '28px', lineHeight: 1.65 }}>
                   Video is processed locally and never stored or uploaded. Allow camera access to continue.
                 </p>
                 <button className="rf-btn-primary" onClick={startCamera} style={{ padding: '14px 32px', fontSize: '15px' }}>
@@ -568,7 +765,7 @@ export default function WorkoutPage() {
                 }}>
                   <VideocamOutlined style={{ fontSize: 32, color: 'rgba(74,222,128,0.6)' }} />
                 </div>
-                <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.35)', fontWeight: 500 }}>Configure your session on the left, then start.</p>
+                <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.6)', fontWeight: 500 }}>Configure your session on the left, then start.</p>
               </div>
             )}
           </div>
@@ -600,7 +797,7 @@ export default function WorkoutPage() {
               fontWeight: 700,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: cameraActive ? '#4ade80' : 'rgba(224,235,224,0.25)',
+              color: cameraActive ? '#4ade80' : 'rgba(224,235,224,0.57)',
             }}>
               {cameraActive ? 'Active' : 'Idle'}
             </div>
@@ -611,7 +808,7 @@ export default function WorkoutPage() {
             {feedbackItems.length === 0 && !cameraActive ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '32px 16px', opacity: 0.4 }}>
                 <InsightsOutlined style={{ fontSize: 36, color: '#4ade80', marginBottom: '12px' }} />
-                <p style={{ fontSize: '13px', color: 'rgba(224,235,224,0.6)', lineHeight: 1.6 }}>Complete a set to receive AI-powered form feedback.</p>
+                <p style={{ fontSize: '13px', color: 'rgba(224,235,224,0.6)', lineHeight: 1.6 }}>Finish a set to get your form feedback.</p>
               </div>
             ) : (
               <>
@@ -635,7 +832,7 @@ export default function WorkoutPage() {
                           {getSeverityIcon(item.severity)}
                           {item.title}
                         </div>
-                        <span style={{ fontSize: '10px', color: 'rgba(224,235,224,0.3)', fontFamily: 'DM Mono, monospace' }}>{item.time}</span>
+                        <span style={{ fontSize: '10px', color: 'rgba(224,235,224,0.48)', fontFamily: 'DM Mono, monospace' }}>{item.time}</span>
                       </div>
                       <p style={{ fontSize: '12px', color: c.text, lineHeight: 1.65, margin: 0 }}>{item.message}</p>
                     </div>
@@ -664,7 +861,7 @@ export default function WorkoutPage() {
           {/* Panel footer */}
           <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(74,222,128,0.07)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <BoltOutlined style={{ fontSize: 13, color: '#fbbf24' }} />
-            <span style={{ fontSize: '11px', color: 'rgba(224,235,224,0.25)' }}>AI prompt engineered by Rishane · Local video processing</span>
+            <span style={{ fontSize: '11px', color: 'rgba(224,235,224,0.57)' }}>AI prompt engineered by Rishane · Local video processing</span>
           </div>
         </aside>
       </div>
