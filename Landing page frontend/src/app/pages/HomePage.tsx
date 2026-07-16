@@ -115,12 +115,12 @@ function Nav({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-        <img src="/logo.svg" alt="Ohm" style={{ height: '32px', width: '32px' }} />
-        <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '0.06em', color: '#e0ebe0' }}>OHM</span>
+        <img src="/logo.svg" alt="Formly" style={{ height: '32px', width: '32px' }} />
+        <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '0.06em', color: '#e0ebe0' }}>FORMLY</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
         <a className="nav-link" href="#how-it-works">How it works</a>
-        <a className="nav-link" href="#why">Why Ohm</a>
+        <a className="nav-link" href="#why">Why Formly</a>
         <a className="nav-link" onClick={() => navigate('/next-steps')} style={{ cursor: 'pointer' }}>Project Roadmap</a>
         <a className="nav-link" onClick={() => navigate('/next-steps#about')} style={{ cursor: 'pointer' }}>About</a>
         <button
@@ -541,7 +541,7 @@ function FooterCTA({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src="/logo.svg" alt="" style={{ height: '18px' }} />
-          <span style={{ fontWeight: 600, letterSpacing: '0.06em' }}>OHM</span>
+          <span style={{ fontWeight: 600, letterSpacing: '0.06em' }}>FORMLY</span>
         </div>
         <span>Built by Ohm Kumblekere · Client: Rishane Oak</span>
         <button

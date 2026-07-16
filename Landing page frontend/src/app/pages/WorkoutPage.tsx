@@ -313,8 +313,8 @@ export default function WorkoutPage() {
         </button>
         <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.svg" alt="Ohm" style={{ height: '26px' }} />
-          <span style={{ fontWeight: 700, letterSpacing: '0.06em', fontSize: '15px' }}>OHM</span>
+          <img src="/logo.svg" alt="Formly" style={{ height: '26px' }} />
+          <span style={{ fontWeight: 700, letterSpacing: '0.06em', fontSize: '15px' }}>FORMLY</span>
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: '20px', fontWeight: 700, color: '#4ade80', letterSpacing: '0.05em' }}>

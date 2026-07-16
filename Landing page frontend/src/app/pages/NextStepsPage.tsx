@@ -31,13 +31,13 @@ export default function NextStepsPage() {
         zIndex: 20,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src="/logo.svg" alt="Ohm" style={{ height: '28px' }} />
-          <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.06em' }}>OHM</span>
+          <img src="/logo.svg" alt="Formly" style={{ height: '28px' }} />
+          <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.06em' }}>FORMLY</span>
         </div>
         <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
           <button className="nav-link-ns" onClick={() => navigate('/')}>Home</button>
           <button className="nav-link-ns" onClick={() => navigate('/#how-it-works')}>How it works</button>
-          <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why Ohm</button>
+          <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why Formly</button>
           <button
             onClick={() => navigate('/workout')}
             style={{ background: '#4ade80', color: '#080c10', border: 'none', fontWeight: 700, cursor: 'pointer', padding: '9px 20px', borderRadius: '8px', fontSize: '14px', transition: 'background 0.2s' }}
@@ -57,7 +57,7 @@ export default function NextStepsPage() {
             Project Documentation
           </span>
           <h1 style={{ fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f0f7f0', margin: '0 0 20px', lineHeight: 1.1 }}>
-            What's Next for<br />Ohm.
+            What's Next for<br />Formly.
           </h1>
           <p style={{ fontSize: '17px', color: 'rgba(224,235,224,0.5)', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
             A working prototype. Real-time pose detection, AI coaching, all running in the browser. Here's what's next.
@@ -136,7 +136,7 @@ export default function NextStepsPage() {
               <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#f0f7f0', marginBottom: '14px', letterSpacing: '-0.01em' }}>Rishane Oak</h3>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '24px' }}>
                 Rishane Oak is a fitness coach and content creator working to make quality training guidance more accessible.
-                Through Ohm, he helps people move better, with coaching backed by biomechanics rather than guesswork.
+                Through Formly, he helps people move better, with coaching backed by biomechanics rather than guesswork.
               </p>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '28px' }}>
                 This tool is an extension of that: a real-time mirror for your form, no trainer required.
