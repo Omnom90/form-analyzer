@@ -31,13 +31,13 @@ export default function NextStepsPage() {
         zIndex: 20,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src="/logo.svg" alt="RishFits" style={{ height: '28px' }} />
-          <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.06em' }}>RISHFITS</span>
+          <img src="/logo.svg" alt="Formly" style={{ height: '28px' }} />
+          <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.06em' }}>FORMLY</span>
         </div>
         <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
           <button className="nav-link-ns" onClick={() => navigate('/')}>Home</button>
           <button className="nav-link-ns" onClick={() => navigate('/#how-it-works')}>How it works</button>
-          <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why RishFits</button>
+          <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why Formly</button>
           <button
             onClick={() => navigate('/workout')}
             style={{ background: '#4ade80', color: '#080c10', border: 'none', fontWeight: 700, cursor: 'pointer', padding: '9px 20px', borderRadius: '8px', fontSize: '14px', transition: 'background 0.2s' }}
@@ -57,7 +57,7 @@ export default function NextStepsPage() {
             Project Documentation
           </span>
           <h1 style={{ fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f0f7f0', margin: '0 0 20px', lineHeight: 1.1 }}>
-            What's Next for<br />RishFits.
+            What's Next for<br />Formly.
           </h1>
           <p style={{ fontSize: '17px', color: 'rgba(224,235,224,0.5)', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
             A working prototype. Real-time pose detection, AI coaching, all running in the browser. Here's what's next.
@@ -136,7 +136,7 @@ export default function NextStepsPage() {
               <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#f0f7f0', marginBottom: '14px', letterSpacing: '-0.01em' }}>Rishane Oak</h3>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '24px' }}>
                 Rishane Oak is a fitness coach and content creator working to make quality training guidance more accessible.
-                Through RishFits, he helps people move better, with coaching backed by biomechanics rather than guesswork.
+                Through Formly, he helps people move better, with coaching backed by biomechanics rather than guesswork.
               </p>
               <p style={{ fontSize: '15px', color: 'rgba(224,235,224,0.55)', lineHeight: 1.75, marginBottom: '28px' }}>
                 This tool is an extension of that: a real-time mirror for your form, no trainer required.
@@ -144,15 +144,15 @@ export default function NextStepsPage() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 <a href="https://www.rishfits.com/" target="_blank" rel="noopener noreferrer" className="ns-link">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  rishfits.com
+                  formly.com
                 </a>
                 <a href="https://www.instagram.com/rishfits/?hl=en" target="_blank" rel="noopener noreferrer" className="ns-link">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                  @rishfits
+                  @formly
                 </a>
                 <a href="https://www.threads.com/@rishfits" target="_blank" rel="noopener noreferrer" className="ns-link">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068V12c0-3.52.85-6.374 2.495-8.491C5.845 1.205 8.598.024 12.179 0h.014c3.582.024 6.334 1.205 8.185 3.509C22.022 5.626 22.5 8.48 22.5 12s-.478 6.374-2.122 8.491C18.527 22.795 15.775 23.976 12.193 24h-.007zm.014-22.5C9.044 1.524 6.72 2.524 5.195 4.534 3.793 6.393 3.007 9.002 3.007 12s.786 5.607 2.188 7.466c1.525 2.01 3.85 3.01 6.993 3.034h.007c3.143-.024 5.468-1.024 6.993-3.034 1.402-1.859 2.188-4.468 2.188-7.466s-.786-5.607-2.188-7.466C17.663 3.024 15.338 2.024 12.2 1.5z"/></svg>
-                  @rishfits
+                  @formly
                 </a>
               </div>
             </div>
