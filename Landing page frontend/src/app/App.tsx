@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import HomePage from './pages/HomePage';
 import WorkoutPage from './pages/WorkoutPage';
 import NextStepsPage from './pages/NextStepsPage';
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/workout" element={<WorkoutPage />} />
         <Route path="/next-steps" element={<NextStepsPage />} />
       </Routes>
+      <SpeedInsights />
     </BrowserRouter>
   );
 }
