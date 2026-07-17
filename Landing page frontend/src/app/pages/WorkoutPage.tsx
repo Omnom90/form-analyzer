@@ -286,10 +286,22 @@ export default function WorkoutPage() {
         @keyframes countPop { from { transform: scale(1.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .feedback-card { transition: transform 0.15s; }
         .feedback-card:hover { transform: translateY(-1px); }
+
+        @media (max-width: 960px) {
+          .wp-columns { flex-direction: column !important; overflow: visible !important; }
+          .wp-aside-left, .wp-aside-right { width: 100% !important; overflow-y: visible !important; }
+          .wp-aside-left { border-right: none !important; border-bottom: 1px solid rgba(74,222,128,0.07) !important; }
+          .wp-aside-right { border-left: none !important; border-top: 1px solid rgba(74,222,128,0.07) !important; }
+          .wp-main { padding: 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .wp-header { padding: 0 14px !important; gap: 10px !important; }
+          .wp-header .wp-brand-text { display: none !important; }
+        }
       `}</style>
 
       {/* HEADER */}
-      <header style={{
+      <header className="wp-header" style={{
         height: '60px',
         background: 'rgba(8,12,16,0.95)',
         backdropFilter: 'blur(12px)',
@@ -314,7 +326,7 @@ export default function WorkoutPage() {
         <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src="/logo.svg" alt="Formly" style={{ height: '26px' }} />
-          <span style={{ fontWeight: 700, letterSpacing: '0.06em', fontSize: '15px' }}>FORMLY</span>
+          <span className="wp-brand-text" style={{ fontWeight: 700, letterSpacing: '0.06em', fontSize: '15px' }}>FORMLY</span>
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: '20px', fontWeight: 700, color: '#4ade80', letterSpacing: '0.05em' }}>
@@ -340,10 +352,10 @@ export default function WorkoutPage() {
       </header>
 
       {/* 3-COLUMN LAYOUT */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div className="wp-columns" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* LEFT PANEL — controls */}
-        <aside style={{
+        <aside className="wp-aside-left" style={{
           width: '260px',
           flexShrink: 0,
           borderRight: '1px solid rgba(74,222,128,0.07)',
@@ -709,7 +721,7 @@ export default function WorkoutPage() {
         </aside>
 
         {/* CENTER — Video */}
-        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#080c10', position: 'relative', overflow: 'hidden' }}>
+        <main className="wp-main" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#080c10', position: 'relative', overflow: 'hidden' }}>
           {/* Subtle corner glow */}
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 50%, rgba(34,60,44,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
@@ -772,7 +784,7 @@ export default function WorkoutPage() {
         </main>
 
         {/* RIGHT PANEL — AI Analysis */}
-        <aside style={{
+        <aside className="wp-aside-right" style={{
           width: '280px',
           flexShrink: 0,
           borderLeft: '1px solid rgba(74,222,128,0.07)',

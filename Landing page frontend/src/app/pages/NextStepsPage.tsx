@@ -14,10 +14,21 @@ export default function NextStepsPage() {
         .roadmap-item:last-child { border-bottom: none; }
         .nav-link-ns { color: rgba(224,235,224,0.45); font-size: 14px; text-decoration: none; transition: color 0.2s; background: none; border: none; cursor: pointer; }
         .nav-link-ns:hover { color: #4ade80; }
+
+        @media (max-width: 768px) {
+          .ns-nav { padding: 0 16px !important; }
+          .ns-nav-links { gap: 14px !important; }
+          .ns-nav-links .nav-link-ns { display: none !important; }
+          .ns-content { padding-left: 20px !important; padding-right: 20px !important; }
+          .ns-client-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .ns-nav .cta-btn-ns { padding: 8px 14px !important; font-size: 13px !important; }
+        }
       `}</style>
 
       {/* Nav */}
-      <nav style={{
+      <nav className="ns-nav" style={{
         height: '64px',
         padding: '0 40px',
         display: 'flex',
@@ -34,11 +45,12 @@ export default function NextStepsPage() {
           <img src="/logo.svg" alt="Formly" style={{ height: '28px' }} />
           <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.06em' }}>FORMLY</span>
         </div>
-        <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
+        <div className="ns-nav-links" style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
           <button className="nav-link-ns" onClick={() => navigate('/')}>Home</button>
           <button className="nav-link-ns" onClick={() => navigate('/#how-it-works')}>How it works</button>
           <button className="nav-link-ns" onClick={() => navigate('/#why')}>Why Formly</button>
           <button
+            className="cta-btn-ns"
             onClick={() => navigate('/workout')}
             style={{ background: '#4ade80', color: '#080c10', border: 'none', fontWeight: 700, cursor: 'pointer', padding: '9px 20px', borderRadius: '8px', fontSize: '14px', transition: 'background 0.2s' }}
             onMouseEnter={e => (e.currentTarget.style.background = '#22c55e')}
@@ -49,7 +61,7 @@ export default function NextStepsPage() {
         </div>
       </nav>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(60px, 10vw, 120px) 40px' }}>
+      <div className="ns-content" style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(60px, 10vw, 120px) 40px' }}>
 
         {/* Page header */}
         <div style={{ marginBottom: '80px', animation: 'fadeUp 0.7s ease' }}>
@@ -125,7 +137,7 @@ export default function NextStepsPage() {
 
         {/* Client */}
         <Section title="Client" label="Who this is for" id="about">
-          <div style={{
+          <div className="ns-client-grid" style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '32px',

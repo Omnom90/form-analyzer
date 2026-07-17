@@ -59,6 +59,19 @@ export default function HomePage() {
           transition: border-color 0.2s, background 0.2s;
         }
         .ghost-btn:hover { border-color: #4ade80; background: rgba(74,222,128,0.06); }
+
+        @media (max-width: 768px) {
+          .site-nav { padding: 0 16px !important; }
+          .site-nav-links { gap: 14px !important; }
+          .nav-link-hide-mobile { display: none !important; }
+          .site-hero-badge { margin-bottom: 20px !important; }
+          .section-pad { padding-left: 20px !important; padding-right: 20px !important; }
+          .footer-row { text-align: center !important; justify-content: center !important; }
+        }
+        @media (max-width: 480px) {
+          .site-nav-links { gap: 10px !important; }
+          .site-nav .cta-btn { padding: 8px 14px !important; font-size: 13px !important; }
+        }
       `}</style>
 
       <Nav navigate={navigate} />
@@ -97,6 +110,7 @@ function Nav({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 
   return (
     <nav
+      className="site-nav"
       style={{
         position: 'fixed',
         top: 0,
@@ -118,11 +132,11 @@ function Nav({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
         <img src="/logo.svg" alt="Formly" style={{ height: '32px', width: '32px' }} />
         <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '0.06em', color: '#e0ebe0' }}>FORMLY</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-        <a className="nav-link" href="#how-it-works">How it works</a>
-        <a className="nav-link" href="#why">Why Formly</a>
-        <a className="nav-link" onClick={() => navigate('/next-steps')} style={{ cursor: 'pointer' }}>Project Roadmap</a>
-        <a className="nav-link" onClick={() => navigate('/next-steps#about')} style={{ cursor: 'pointer' }}>About</a>
+      <div className="site-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <a className="nav-link nav-link-hide-mobile" href="#how-it-works">How it works</a>
+        <a className="nav-link nav-link-hide-mobile" href="#why">Why Formly</a>
+        <a className="nav-link nav-link-hide-mobile" onClick={() => navigate('/next-steps')} style={{ cursor: 'pointer' }}>Project Roadmap</a>
+        <a className="nav-link nav-link-hide-mobile" onClick={() => navigate('/next-steps#about')} style={{ cursor: 'pointer' }}>About</a>
         <button
           className="cta-btn"
           onClick={() => navigate('/workout')}
@@ -290,6 +304,7 @@ function HowItWorksSection() {
     <section
       id="how-it-works"
       ref={ref}
+      className="section-pad"
       style={{
         scrollMarginTop: '64px',
         padding: 'clamp(80px, 12vw, 160px) 40px',
@@ -397,6 +412,7 @@ function WhySection() {
     <section
       id="why"
       ref={ref}
+      className="section-pad"
       style={{
         scrollMarginTop: '64px',
         padding: 'clamp(80px, 12vw, 160px) 40px',
@@ -480,6 +496,7 @@ function FooterCTA({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
     <section
       id="footer-cta"
       ref={ref}
+      className="section-pad"
       style={{
         padding: 'clamp(80px, 12vw, 160px) 40px',
         textAlign: 'center',
@@ -526,7 +543,7 @@ function FooterCTA({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
       </div>
 
       {/* Footer */}
-      <div style={{
+      <div className="footer-row" style={{
         marginTop: '100px',
         paddingTop: '40px',
         borderTop: '1px solid rgba(74,222,128,0.08)',
