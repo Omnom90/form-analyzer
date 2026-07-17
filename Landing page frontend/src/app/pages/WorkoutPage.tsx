@@ -14,6 +14,7 @@ import {
   ArrowBackOutlined,
 } from '@mui/icons-material';
 import { usePoseDetection, PoseResult } from '../usePoseDetection';
+import { useIsMobile } from '../components/ui/use-mobile';
 
 type FeedbackItem = {
   time: string;
@@ -64,6 +65,7 @@ const calculateAverage = (numbers: (number | null)[]): number => {
 
 export default function WorkoutPage() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -298,6 +300,44 @@ export default function WorkoutPage() {
           .wp-header { padding: 0 14px !important; gap: 10px !important; }
           .wp-header .wp-brand-text { display: none !important; }
         }
+
+        .wp-fullscreen-mode .wp-aside-right { display: none !important; }
+        .wp-fullscreen-mode .wp-main {
+          position: fixed !important;
+          top: 60px; left: 0; right: 0; bottom: 0;
+          padding: 0 !important;
+          z-index: 15;
+        }
+        .wp-fullscreen-mode .wp-main > div {
+          max-width: none !important;
+          width: 100% !important;
+          height: 100% !important;
+          aspect-ratio: unset !important;
+          border-radius: 0 !important;
+          border: none !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left {
+          position: fixed !important;
+          left: 0; right: 0; bottom: 0;
+          z-index: 25;
+          width: 100% !important;
+          max-height: 42vh;
+          background: rgba(8,12,16,0.88) !important;
+          backdrop-filter: blur(14px);
+          border-top: 1px solid rgba(74,222,128,0.15) !important;
+          border-right: none !important;
+          border-bottom: none !important;
+          padding: 14px 16px !important;
+          gap: 12px !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-active-grid {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 10px !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-active-grid > div { padding: 12px !important; }
+        .wp-fullscreen-mode .wp-aside-left .wp-active-grid span:first-child { font-size: 28px !important; }
+        .wp-fullscreen-mode .wp-aside-left > div:first-child { display: none; }
       `}</style>
 
       {/* HEADER */}
@@ -352,7 +392,7 @@ export default function WorkoutPage() {
       </header>
 
       {/* 3-COLUMN LAYOUT */}
-      <div className="wp-columns" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div className={`wp-columns ${isMobile && cameraActive ? 'wp-fullscreen-mode' : ''}`} style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* LEFT PANEL — controls */}
         <aside className="wp-aside-left" style={{
@@ -642,31 +682,33 @@ export default function WorkoutPage() {
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#e0ebe0' }}>{config.label}</div>
               </div>
 
-              {/* Set counter */}
-              <div style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(74,222,128,0.1)',
-                borderRadius: '12px',
-                padding: '20px',
-              }}>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '8px' }}>Set</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '48px', fontWeight: 900, color: '#e0ebe0', fontFamily: 'DM Mono, monospace', lineHeight: 1 }}>{currentSet}</span>
-                  <span style={{ fontSize: '20px', color: 'rgba(224,235,224,0.48)', fontFamily: 'DM Mono, monospace' }}>/ {targetSets}</span>
+              <div className="wp-active-grid" style={{ display: 'contents' }}>
+                {/* Set counter */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(74,222,128,0.1)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                }}>
+                  <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '8px' }}>Set</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <span style={{ fontSize: '48px', fontWeight: 900, color: '#e0ebe0', fontFamily: 'DM Mono, monospace', lineHeight: 1 }}>{currentSet}</span>
+                    <span style={{ fontSize: '20px', color: 'rgba(224,235,224,0.48)', fontFamily: 'DM Mono, monospace' }}>/ {targetSets}</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Rep counter */}
-              <div style={{
-                background: 'rgba(74,222,128,0.05)',
-                border: '1px solid rgba(74,222,128,0.2)',
-                borderRadius: '12px',
-                padding: '20px',
-              }}>
-                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#4ade80', marginBottom: '8px' }}>Reps</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '56px', fontWeight: 900, color: '#4ade80', fontFamily: 'DM Mono, monospace', lineHeight: 1 }}>{repsThisSet}</span>
-                  <span style={{ fontSize: '22px', color: 'rgba(74,222,128,0.35)', fontFamily: 'DM Mono, monospace' }}>/ {targetReps}</span>
+                {/* Rep counter */}
+                <div style={{
+                  background: 'rgba(74,222,128,0.05)',
+                  border: '1px solid rgba(74,222,128,0.2)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                }}>
+                  <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#4ade80', marginBottom: '8px' }}>Reps</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <span style={{ fontSize: '56px', fontWeight: 900, color: '#4ade80', fontFamily: 'DM Mono, monospace', lineHeight: 1 }}>{repsThisSet}</span>
+                    <span style={{ fontSize: '22px', color: 'rgba(74,222,128,0.35)', fontFamily: 'DM Mono, monospace' }}>/ {targetReps}</span>
+                  </div>
                 </div>
               </div>
 
