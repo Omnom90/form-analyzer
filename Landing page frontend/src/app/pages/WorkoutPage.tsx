@@ -98,6 +98,8 @@ export default function WorkoutPage() {
   const [currentSet, setCurrentSet] = useState(1);
   const [targetSets, setTargetSets] = useState(3);
   const [targetReps, setTargetReps] = useState(8);
+  const [setsInputStr, setSetsInputStr] = useState('3');
+  const [repsInputStr, setRepsInputStr] = useState('8');
   const [exercise, setExercise] = useState<'squat' | 'pushup'>('squat');
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
 
@@ -300,6 +302,14 @@ export default function WorkoutPage() {
           .wp-header { padding: 0 14px !important; gap: 10px !important; }
           .wp-header .wp-brand-text { display: none !important; }
         }
+        @media (max-width: 767px) {
+          .wp-aside-left { gap: 14px !important; }
+          .wp-rest-timer > div:first-child { margin-bottom: 6px !important; }
+          .wp-rest-timer button { padding: 5px 8px !important; }
+          .wp-rest-display { font-size: 22px !important; margin-bottom: 6px !important; }
+          .wp-rest-analog { margin-bottom: 6px !important; }
+          .wp-rest-analog svg { width: 64px !important; height: 64px !important; }
+        }
 
         .wp-fullscreen-mode .wp-aside-right { display: none !important; }
         .wp-fullscreen-mode .wp-main {
@@ -457,9 +467,11 @@ export default function WorkoutPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {(['Sets', 'Reps'] as const).map(label => {
-                  const val = label === 'Sets' ? targetSets : targetReps;
-                  const setter = label === 'Sets' ? setTargetSets : setTargetReps;
-                  const max = label === 'Sets' ? 10 : 30;
+                  const isSets = label === 'Sets';
+                  const setter = isSets ? setTargetSets : setTargetReps;
+                  const inputStr = isSets ? setsInputStr : repsInputStr;
+                  const setInputStr = isSets ? setSetsInputStr : setRepsInputStr;
+                  const max = isSets ? 10 : 30;
                   return (
                     <div key={label}>
                       <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '8px' }}>{label}</div>
@@ -467,8 +479,25 @@ export default function WorkoutPage() {
                         type="number"
                         min={1}
                         max={max}
-                        value={val}
-                        onChange={e => setter(Math.min(max, Math.max(1, parseInt(e.target.value) || 1)))}
+                        inputMode="numeric"
+                        enterKeyHint="done"
+                        value={inputStr}
+                        onChange={e => {
+                          const raw = e.target.value;
+                          if (raw === '' || /^\d+$/.test(raw)) {
+                            setInputStr(raw);
+                            if (raw !== '') setter(parseInt(raw, 10));
+                          }
+                        }}
+                        onBlur={() => {
+                          const parsed = parseInt(inputStr, 10);
+                          const clamped = isNaN(parsed) ? 1 : Math.min(max, Math.max(1, parsed));
+                          setter(clamped);
+                          setInputStr(String(clamped));
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') e.currentTarget.blur();
+                        }}
                         className="rf-input"
                         style={{
                           width: '100%',
@@ -525,7 +554,7 @@ export default function WorkoutPage() {
               </div>
 
               {/* Rest Timer */}
-              <div>
+              <div className="wp-rest-timer">
                 <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(224,235,224,0.6)', marginBottom: '10px' }}>Rest Timer</div>
                 {/* Mode toggle */}
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
@@ -612,7 +641,7 @@ export default function WorkoutPage() {
                       />
                     </div>
                     {/* Digital display */}
-                    <div style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '38px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                    <div className="wp-rest-display" style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '38px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
                       {formatRestTime(restTimerValue ?? restTimerDuration)}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
@@ -641,7 +670,7 @@ export default function WorkoutPage() {
                 ) : (
                   <>
                     {/* Analog stopwatch at 60 BPM */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                    <div className="wp-rest-analog" style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
                       <svg width="96" height="96" viewBox="0 0 96 96">
                         <circle cx="48" cy="48" r="44" fill="none" stroke="rgba(74,222,128,0.12)" strokeWidth="2" />
                         <circle cx="48" cy="48" r="44" fill="none" stroke="rgba(74,222,128,0.06)" strokeWidth="1" strokeDasharray="3 5.5" />
@@ -661,7 +690,7 @@ export default function WorkoutPage() {
                         <circle cx="48" cy="48" r="3" fill="#4ade80" />
                       </svg>
                     </div>
-                    <div style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                    <div className="wp-rest-display" style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 900, color: restTimerValue !== null ? '#e0ebe0' : 'rgba(224,235,224,0.57)', letterSpacing: '0.05em', marginBottom: '10px' }}>
                       {formatRestTime(restTimerValue ?? 0)}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
