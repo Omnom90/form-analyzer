@@ -321,23 +321,47 @@ export default function WorkoutPage() {
           left: 0; right: 0; bottom: 0;
           z-index: 25;
           width: 100% !important;
-          max-height: 42vh;
+          max-height: none;
           background: rgba(8,12,16,0.88) !important;
           backdrop-filter: blur(14px);
           border-top: 1px solid rgba(74,222,128,0.15) !important;
           border-right: none !important;
           border-bottom: none !important;
-          padding: 14px 16px !important;
-          gap: 12px !important;
-        }
-        .wp-fullscreen-mode .wp-aside-left .wp-active-grid {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
+          padding: 10px 14px !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: space-between !important;
           gap: 10px !important;
         }
-        .wp-fullscreen-mode .wp-aside-left .wp-active-grid > div { padding: 12px !important; }
-        .wp-fullscreen-mode .wp-aside-left .wp-active-grid span:first-child { font-size: 28px !important; }
         .wp-fullscreen-mode .wp-aside-left > div:first-child { display: none; }
+        .wp-fullscreen-mode .wp-aside-left .wp-active-grid {
+          display: contents !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-set-counter,
+        .wp-fullscreen-mode .wp-aside-left .wp-position-status {
+          display: none !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-rep-counter {
+          padding: 8px 14px !important;
+          border-radius: 10px !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-rep-counter > div:first-child { font-size: 9px !important; margin-bottom: 2px !important; }
+        .wp-fullscreen-mode .wp-aside-left .wp-rep-counter span:first-child { font-size: 26px !important; }
+        .wp-fullscreen-mode .wp-aside-left .wp-rep-counter span:last-child { font-size: 14px !important; }
+        .wp-fullscreen-mode .wp-aside-left .wp-controls {
+          flex-direction: row !important;
+          margin-top: 0 !important;
+          gap: 6px !important;
+          width: auto !important;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-controls button {
+          padding: 8px 10px !important;
+          font-size: 11px !important;
+          white-space: nowrap;
+        }
+        .wp-fullscreen-mode .wp-aside-left .wp-controls button svg {
+          font-size: 14px !important;
+        }
       `}</style>
 
       {/* HEADER */}
@@ -684,7 +708,7 @@ export default function WorkoutPage() {
 
               <div className="wp-active-grid" style={{ display: 'contents' }}>
                 {/* Set counter */}
-                <div style={{
+                <div className="wp-set-counter" style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(74,222,128,0.1)',
                   borderRadius: '12px',
@@ -698,7 +722,7 @@ export default function WorkoutPage() {
                 </div>
 
                 {/* Rep counter */}
-                <div style={{
+                <div className="wp-rep-counter" style={{
                   background: 'rgba(74,222,128,0.05)',
                   border: '1px solid rgba(74,222,128,0.2)',
                   borderRadius: '12px',
@@ -714,7 +738,7 @@ export default function WorkoutPage() {
 
               {/* Position status */}
               {countdownValue !== null && (
-                <div style={{
+                <div className="wp-position-status" style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -732,9 +756,9 @@ export default function WorkoutPage() {
               )}
 
               {/* Controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+              <div className="wp-controls" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
                 <button
-                  className="rf-btn-ghost"
+                  className="rf-btn-ghost wp-btn-pause"
                   onClick={() => setIsPaused(p => !p)}
                   disabled={countdownValue !== null}
                   style={{ padding: '12px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: countdownValue !== null ? 0.4 : 1, cursor: countdownValue !== null ? 'not-allowed' : 'pointer' }}
@@ -743,7 +767,7 @@ export default function WorkoutPage() {
                 </button>
                 {countdownValue === null && (
                   <button
-                    className="rf-btn-ghost"
+                    className="rf-btn-ghost wp-btn-stop"
                     onClick={() => sendSetToBackend(true)}
                     style={{ padding: '12px', fontSize: '14px', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', background: 'rgba(245,158,11,0.05)' }}
                   >
@@ -751,7 +775,7 @@ export default function WorkoutPage() {
                   </button>
                 )}
                 <button
-                  className="rf-btn-danger"
+                  className="rf-btn-danger wp-btn-abort"
                   onClick={() => { stopCamera(); }}
                   style={{ padding: '12px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
