@@ -455,9 +455,15 @@ export default function WorkoutPage() {
                     border: '1px solid rgba(74,222,128,0.15)',
                     borderRadius: '8px',
                     color: '#e0ebe0',
-                    padding: '10px 12px',
+                    padding: '10px 32px 10px 12px',
                     fontSize: '14px',
                     fontWeight: 600,
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    backgroundImage: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="#e0ebe0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>')}")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 12px center',
                   }}
                 >
                   <option value="squat" style={{ background: '#0f1a14' }}>Bodyweight Squat</option>
